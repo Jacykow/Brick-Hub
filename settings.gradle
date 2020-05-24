@@ -1,0 +1,2 @@
+rootProject.name='Brick Hub'
+include ':app'
