@@ -4,12 +4,10 @@ import org.xmlpull.v1.XmlPullParser
 
 class Item {
     var alternate: String? = null
-    var counterpart: String? = null
     var extra: String? = null
     var color: String? = null
     var qty: String? = null
     var itemType: String? = null
-    var matchId: String? = null
     var itemId: String? = null
 
     companion object {
@@ -28,9 +26,6 @@ class Item {
                             "ALTERNATE" -> {
                                 value.alternate = field.second
                             }
-                            "COUNTERPART" -> {
-                                value.counterpart = field.second
-                            }
                             "EXTRA" -> {
                                 value.extra = field.second
                             }
@@ -42,9 +37,6 @@ class Item {
                             }
                             "ITEMTYPE" -> {
                                 value.itemType = field.second
-                            }
-                            "MATCHID" -> {
-                                value.matchId = field.second
                             }
                             "ITEMID" -> {
                                 value.itemId = field.second

@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.gulij.brickhub.R
 import com.gulij.brickhub.models.Inventory
 import com.gulij.brickhub.models.Project
+import com.gulij.brickhub.utility.DBManager
 import com.gulij.brickhub.utility.DataManager
 import com.gulij.brickhub.utility.StateManager
 import com.gulij.brickhub.utility.downloadXMLObject
@@ -25,14 +26,25 @@ class CreateProjectActivity : AppCompatActivity() {
                 this,
                 "http://fcds.cs.put.poznan.pl/MyWeb/BL/" + setNumberEditText.text.toString() + ".xml",
                 (Inventory)::fromXMLString
-            ) {
-                if (it == null) {
+            ) { inventory ->
+                if (inventory == null) {
                     Toast.makeText(this, "Invalid Set Number!", Toast.LENGTH_SHORT).show()
                     confirmButton.isEnabled = true
                 } else {
-                    val createdProject = Project(projectNameEditText.text.toString(), it)
+                    val createdProject = Project(
+                        (DataManager.projects.keys.max() ?: 0) + 1,
+                        projectNameEditText.text.toString(),
+                        ArrayList(inventory.filter { it.alternate == "N" }.mapNotNull {
+                            DBManager.getBrickByItemId(
+                                it.itemId!!
+                            )
+                        }),
+                        -1
+                    )
+
+
                     StateManager.activeProject = createdProject
-                    DataManager.projects.add(createdProject)
+                    DataManager.addProject(createdProject)
                     startActivity(Intent(this, ProjectActivity::class.java))
                 }
             }

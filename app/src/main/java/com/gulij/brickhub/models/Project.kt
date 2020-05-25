@@ -1,8 +1,6 @@
 package com.gulij.brickhub.models
 
-data class Project(var name: String, var bricks: ArrayList<Brick>) {
-    constructor(name: String, inventory: Inventory) : this(
-        name,
-        ArrayList<Brick>(inventory.map { Brick(it) })
-    )
+import com.gulij.brickhub.utility.DBManager.getBrickByItemId
+
+data class Project(val id: Int, var name: String, var bricks: ArrayList<Brick>, var lastAccess: Int) {
 }
