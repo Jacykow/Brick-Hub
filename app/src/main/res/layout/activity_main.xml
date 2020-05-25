@@ -6,6 +6,13 @@
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity">
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/projectList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:listitem="@layout/item_project"
+        android:padding="10dp"/>
+
     <Button
         android:id="@+id/addProjectButton"
         android:layout_width="60dp"

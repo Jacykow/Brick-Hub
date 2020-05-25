@@ -27,6 +27,7 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/descriptionText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 tools:text="brick description" />

@@ -6,7 +6,8 @@
     tools:context=".activities.ProjectActivity">
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/brickList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/item_brick"/>
+        tools:listitem="@layout/item_brick" />
 </FrameLayout>
