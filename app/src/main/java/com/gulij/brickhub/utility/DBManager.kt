@@ -4,7 +4,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import java.io.File
 
-object DBHandler {
+object DBManager {
     lateinit var db: SQLiteDatabase
 
     fun init(context: Context) {

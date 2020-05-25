@@ -21,13 +21,5 @@ class ProjectActivity : AppCompatActivity() {
         brickList.setHasFixedSize(false)
         brickList.layoutManager = LinearLayoutManager(this)
         brickList.adapter = BrickListAdapter(StateManager.activeProject!!.bricks)
-
-        downloadXMLObject(
-            this,
-            "http://fcds.cs.put.poznan.pl/MyWeb/BL/10179.xml",
-            (Inventory)::fromXMLString
-        ) {
-            Log.d("TAG", "SUCCESS!")
-        }
     }
 }

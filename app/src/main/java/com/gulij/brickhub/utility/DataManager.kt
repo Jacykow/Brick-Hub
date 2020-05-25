@@ -8,6 +8,8 @@ object DataManager {
     lateinit var projects: ArrayList<Project>
 
     fun init(context: Context) {
-        projects = arrayListOf(Project("XDXD", arrayListOf(Brick())))
+        if(!this::projects.isInitialized){
+            projects = arrayListOf(Project("Wózek", arrayListOf(Brick("część 1"),Brick("część 2"))))
+        }
     }
 }

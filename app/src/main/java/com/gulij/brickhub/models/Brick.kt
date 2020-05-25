@@ -1,4 +1,5 @@
 package com.gulij.brickhub.models
 
-class Brick {
+data class Brick(private val name: String) {
+    constructor(item: Item) : this(item.itemId ?: "no name")
 }

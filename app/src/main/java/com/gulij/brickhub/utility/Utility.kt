@@ -11,7 +11,7 @@ fun <T> downloadXMLObject(
     context: Context,
     url: String,
     parser: (String) -> T,
-    onComplete: (T) -> Unit
+    onComplete: (T?) -> Unit
 ) {
     val queue = Volley.newRequestQueue(context)
 
@@ -20,7 +20,10 @@ fun <T> downloadXMLObject(
         Response.Listener<String> { response ->
             onComplete.invoke(parser.invoke(response))
         },
-        Response.ErrorListener { error -> Log.e("TAG", error.toString()) })
+        Response.ErrorListener { error ->
+            Log.w("TAG", error.toString())
+            onComplete.invoke(null)
+        })
 
     queue.add(request)
 }
