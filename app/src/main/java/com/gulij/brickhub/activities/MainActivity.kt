@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         projectList.setHasFixedSize(false)
         projectList.layoutManager = LinearLayoutManager(this)
-        projectList.adapter = ProjectListAdapter(DataManager.projects) {
+        projectList.adapter = ProjectListAdapter(DataManager.projectList) {
             StateManager.activeProject = it
             startActivity(Intent(this, ProjectActivity::class.java))
         }
