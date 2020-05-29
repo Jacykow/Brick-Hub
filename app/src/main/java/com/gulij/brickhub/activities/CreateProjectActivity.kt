@@ -31,17 +31,16 @@ class CreateProjectActivity : AppCompatActivity() {
                     Toast.makeText(this, "Invalid Set Number!", Toast.LENGTH_SHORT).show()
                     confirmButton.isEnabled = true
                 } else {
+                    val projectId =
+                        (DataManager.projects.map { project -> project.id }.max() ?: 0) + 1
                     val createdProject = Project(
-                        (DataManager.projects.map { project -> project.id }.max() ?: 0) + 1,
+                        projectId,
                         projectNameEditText.text.toString(),
                         ArrayList(inventory.filter { it.alternate == "N" }.mapNotNull {
-                            DBManager.getBrickByItemId(
-                                it.itemId!!
-                            )
+                            DBManager.getBrickByItem(it, projectId)
                         }),
                         -1
                     )
-
 
                     StateManager.activeProject = createdProject
                     DataManager.addProject(createdProject)

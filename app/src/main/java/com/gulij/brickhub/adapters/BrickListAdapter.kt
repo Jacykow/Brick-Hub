@@ -22,7 +22,7 @@ class BrickListAdapter(
     }
 
     override fun onBindViewHolder(holder: BrickViewHolder, position: Int) {
-        holder.layout.findViewById<TextView>(R.id.descriptionText).text = bricks[position].name
+        holder.layout.findViewById<TextView>(R.id.descriptionText).text = bricks[position].id.toString()
     }
 
     override fun getItemCount() = bricks.size
