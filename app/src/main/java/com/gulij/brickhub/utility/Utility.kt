@@ -17,7 +17,7 @@ fun <T> downloadXMLObject(
 
     val request = StringRequest(
         Request.Method.GET, url,
-        Response.Listener<String> { response ->
+        Response.Listener { response ->
             onComplete.invoke(parser.invoke(response))
         },
         Response.ErrorListener { error ->

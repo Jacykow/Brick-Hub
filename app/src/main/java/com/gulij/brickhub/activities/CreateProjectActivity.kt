@@ -32,7 +32,7 @@ class CreateProjectActivity : AppCompatActivity() {
                     confirmButton.isEnabled = true
                 } else {
                     val createdProject = Project(
-                        (DataManager.projects.keys.max() ?: 0) + 1,
+                        (DataManager.projects.map { project -> project.id }.max() ?: 0) + 1,
                         projectNameEditText.text.toString(),
                         ArrayList(inventory.filter { it.alternate == "N" }.mapNotNull {
                             DBManager.getBrickByItemId(

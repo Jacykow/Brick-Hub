@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         projectList.setHasFixedSize(false)
         projectList.layoutManager = LinearLayoutManager(this)
-        projectList.adapter = ProjectListAdapter(DataManager.projectList) {
+        projectList.adapter = ProjectListAdapter(DataManager.projects) {
             StateManager.activeProject = it
             startActivity(Intent(this, ProjectActivity::class.java))
         }
@@ -30,5 +30,10 @@ class MainActivity : AppCompatActivity() {
         addProjectButton.setOnClickListener {
             startActivity(Intent(this, CreateProjectActivity::class.java))
         }
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        projectList.adapter!!.notifyDataSetChanged()
     }
 }
