@@ -49,6 +49,14 @@ object DBManager {
         return list
     }
 
+    fun wipeData(onResult: () -> Unit) {
+        executeSql("delete from Inventories") {
+            executeSql("delete from InventoriesParts") {
+                onResult.invoke()
+            }
+        }
+    }
+
     fun addProject(projectName: String, onResult: (Cursor) -> Unit) {
         executeSql("executeSql(\"select coalesce(max(id),0)+1 from Inventories\")") { firstResult ->
             executeSql(

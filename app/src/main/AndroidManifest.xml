@@ -15,7 +15,8 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="AllowBackup">
-        <activity android:name=".activities.CreateProjectActivity"></activity>
+        <activity android:name=".activities.SettingsActivity"></activity>
+        <activity android:name=".activities.CreateProjectActivity" />
         <activity android:name=".activities.ProjectActivity" />
         <activity android:name=".activities.MainActivity">
             <intent-filter>

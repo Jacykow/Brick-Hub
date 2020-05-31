@@ -30,8 +30,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
+    override fun onResume() {
+        super.onResume()
         (projectList.adapter as ProjectListAdapter).projects = DBManager.getProjectIds()
         projectList.adapter!!.notifyDataSetChanged()
     }

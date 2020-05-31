@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Brick Hub</string>
+    <string name="wipe_data">Wipe Data</string>
 </resources>
