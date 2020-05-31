@@ -4,8 +4,15 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
+import android.widget.ImageView
 import com.gulij.brickhub.models.Item
+import com.squareup.picasso.Picasso
 import java.io.File
+import java.nio.ByteBuffer
+
 
 object DBManager {
     lateinit var db: SQLiteDatabase
@@ -143,13 +150,27 @@ object DBManager {
     }
 
     fun changePartAmount(partId: Int, amountDelta: Int): HashMap<String, String?>? {
-        val quantity = getPartAmount(partId)!!.values.toList()[0]!!.toInt()
-        val maxQuantity = getPartAmount(partId)!!.values.toList()[1]!!.toInt()
+        val result = getPartAmount(partId)!!.values.toList()
+        val quantity = result[0]!!.toInt()
+        val maxQuantity = result[1]!!.toInt()
         db.update(
             "InventoriesParts", ContentValues().apply {
                 put("QuantityInStore", (quantity + amountDelta).coerceIn(0, maxQuantity))
             }, "id=?", arrayOf(partId.toString())
         )
         return getPartAmount(partId)
+    }
+
+    fun getImage(imageView: ImageView, partId: Int) {
+        val cursor =
+            db.rawQuery("select Image from Codes where Codes.id=?", arrayOf(partId.toString()))
+        val blob = cursor.getBlob(0)
+        cursor.close()
+
+        object : com.squareup.picasso.Target {
+            override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {}
+            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+            override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
+        }
     }
 }

@@ -1,13 +1,17 @@
 package com.gulij.brickhub.adapters
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.gulij.brickhub.R
 import com.gulij.brickhub.utility.DBManager
+import com.squareup.picasso.Picasso
 
 class BrickListAdapter(
     var bricks: ArrayList<Int>
