@@ -24,9 +24,24 @@ class BrickListAdapter(
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: BrickViewHolder, position: Int) {
-        DBManager.getPart(bricks[position]){
-            holder.layout.findViewById<TextView>(R.id.descriptionText).text = "${it.getString(0)}\n${it.getString(1)} [${it.getInt(2)}]"
-            holder.layout.findViewById<TextView>(R.id.brickAmountText).text = "${it.getString(3)} of ${it.getString(4)}"
+        DBManager.getPart(bricks[position]) {
+            holder.layout.findViewById<TextView>(R.id.descriptionText).text =
+                "${it.getString(0)}\n${it.getString(1)} [${it.getInt(2)}]"
+            holder.layout.findViewById<TextView>(R.id.brickAmountText).text =
+                "${it.getString(3)} of ${it.getString(4)}"
+        }
+        val partId = bricks[position]
+        holder.layout.findViewById<TextView>(R.id.buttonMinus).setOnClickListener {
+            DBManager.changePartAmount(partId, -1) {
+                holder.layout.findViewById<TextView>(R.id.brickAmountText).text =
+                    "${it.getString(0)} of ${it.getString(1)}"
+            }
+        }
+        holder.layout.findViewById<TextView>(R.id.buttonPlus).setOnClickListener {
+            DBManager.changePartAmount(partId, 1) {
+                holder.layout.findViewById<TextView>(R.id.brickAmountText).text =
+                    "${it.getString(0)} of ${it.getString(1)}"
+            }
         }
     }
 
