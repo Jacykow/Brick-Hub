@@ -2,17 +2,17 @@ package com.gulij.brickhub.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.gulij.brickhub.R
-import com.gulij.brickhub.models.Project
+import com.gulij.brickhub.utility.DBManager
 
 class ProjectListAdapter(
-    private val projects: ArrayList<Project>,
-    private val selectedProjectListener: (Project) -> Unit
+    private val selectedProjectListener: (Int) -> Unit
 ) :
     RecyclerView.Adapter<ProjectListAdapter.ProjectViewHolder>() {
+
+    var projects: ArrayList<Int> = arrayListOf()
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -24,7 +24,9 @@ class ProjectListAdapter(
     }
 
     override fun onBindViewHolder(holder: ProjectViewHolder, position: Int) {
-        holder.textView.text = projects[position].name
+        DBManager.getProject(projects[position]) {
+            holder.textView.text = it.getString(0)
+        }
         holder.textView.setOnClickListener {
             selectedProjectListener.invoke(projects[holder.adapterPosition])
         }

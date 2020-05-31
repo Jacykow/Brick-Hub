@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.gulij.brickhub.R
 import com.gulij.brickhub.adapters.BrickListAdapter
+import com.gulij.brickhub.utility.DBManager
 import com.gulij.brickhub.utility.StateManager
 import kotlinx.android.synthetic.main.activity_project.*
 
@@ -16,6 +17,7 @@ class ProjectActivity : AppCompatActivity() {
 
         brickList.setHasFixedSize(false)
         brickList.layoutManager = LinearLayoutManager(this)
-        brickList.adapter = BrickListAdapter(StateManager.activeProject!!.bricks)
+        DBManager.updateProject(StateManager.activeProject!!) {}
+        brickList.adapter = BrickListAdapter(DBManager.getPartIds(StateManager.activeProject!!))
     }
 }

@@ -6,9 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.gulij.brickhub.R
 import com.gulij.brickhub.models.Inventory
-import com.gulij.brickhub.models.Project
 import com.gulij.brickhub.utility.DBManager
-import com.gulij.brickhub.utility.DataManager
 import com.gulij.brickhub.utility.StateManager
 import com.gulij.brickhub.utility.downloadXMLObject
 import kotlinx.android.synthetic.main.activity_create_project.*
@@ -31,20 +29,15 @@ class CreateProjectActivity : AppCompatActivity() {
                     Toast.makeText(this, "Invalid Set Number!", Toast.LENGTH_SHORT).show()
                     confirmButton.isEnabled = true
                 } else {
-                    val projectId =
-                        (DataManager.projects.map { project -> project.id }.max() ?: 0) + 1
-                    val createdProject = Project(
-                        projectId,
-                        projectNameEditText.text.toString(),
-                        ArrayList(inventory.filter { it.alternate == "N" }.mapNotNull {
-                            DBManager.getBrickByItem(it, projectId)
-                        }),
-                        -1
-                    )
+                    DBManager.addProject(projectNameEditText.text.toString()) {
+                        StateManager.activeProject = it.getInt(0)
 
-                    StateManager.activeProject = createdProject
-                    DataManager.addProject(createdProject)
-                    startActivity(Intent(this, ProjectActivity::class.java))
+                        for (item in inventory.filter { item -> item.alternate == "N" }) {
+                            DBManager.addPartFromItem(item, StateManager.activeProject!!) {}
+                        }
+
+                        startActivity(Intent(this, ProjectActivity::class.java))
+                    }
                 }
             }
         }

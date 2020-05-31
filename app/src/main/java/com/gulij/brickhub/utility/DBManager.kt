@@ -1,8 +1,8 @@
 package com.gulij.brickhub.utility
 
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
-import com.gulij.brickhub.models.Brick
 import com.gulij.brickhub.models.Item
 import java.io.File
 
@@ -31,49 +31,68 @@ object DBManager {
         db = SQLiteDatabase.openDatabase(dbFile.path, null, 0)
     }
 
-    fun getBrickByItem(item: Item, projectId: Int): Brick? {
-        val cursor1 = db.rawQuery("select coalesce(max(id),0)+1 from InventoriesParts", null)
-        if (!cursor1.moveToFirst()) {
-            cursor1.close()
-            return null
+    private fun executeSql(sql: String, onResult: (Cursor) -> Unit) {
+        val cursor = db.rawQuery(sql, null)
+        if (cursor.moveToFirst()) {
+            onResult.invoke(cursor)
         }
-        val itemId = cursor1.getInt(0)
-        cursor1.close()
-
-        val cursor2 =
-            db.rawQuery("select TypeID, id from Parts where Code=\'${item.itemId}\'", null)
-        val brick = if (cursor2.moveToFirst()) {
-            Brick(
-                itemId,
-                projectId,
-                cursor2.getInt(0),
-                cursor2.getInt(1),
-                item.qty!!.toInt(),
-                0,
-                item.color!!.toInt()
-            )
-        } else {
-            null
-        }
-
-        cursor2.close()
-
-        if (brick != null) {
-            //val cursor3 = db.rawQuery("insert into InventoriesParts (id,InventoryId,TypeID,ItemID,QuantityInSet,QuantityInStore,ColorID) values ()", null)
-
-        }
-
-        return brick
+        cursor.close()
     }
 
-    fun getBrickNameAndColor(brick: Brick): Pair<String, String> {
-        val cursor = db.rawQuery(
-            "select Parts.Name, Colors.Name from Codes left join Colors on Codes.ColorID = Colors.id left join Parts on Codes.id = Parts.id where Codes.id=${brick.itemId}",
-            null
-        )
-        cursor.moveToFirst()
-        val nameAndColor = Pair(cursor.getString(0), cursor.getString(1))
+    private fun <T> executeSqlForArrayList(sql: String, converter: (Cursor) -> T): ArrayList<T> {
+        val cursor = db.rawQuery(sql, null)
+        val list = ArrayList<T>()
+        if (cursor.moveToFirst()) {
+            list.add(converter.invoke(cursor))
+        }
         cursor.close()
-        return nameAndColor
+        return list
+    }
+
+    fun addProject(projectName: String, onResult: (Cursor) -> Unit) {
+        executeSql(
+            "insert into Inventories select coalesce(max(id),0)+1,\'$projectName\',1,CURRENT_TIMESTAMP from Inventories",
+            onResult
+        )
+    }
+
+    fun addPartFromItem(item: Item, projectId: Int, onResult: (Cursor) -> Unit) {
+        executeSql(
+            "insert into InventoriesParts select coalesce(max(InventoriesParts.id),0)+1,$projectId,Parts.TypeID,Parts.id,${item.qty},0,${item.color},0 from Parts left join InventoriesParts where Parts.Code=\'${item.itemId}\'",
+            onResult
+        )
+    }
+
+    fun getProjectIds(): ArrayList<Int> {
+        return executeSqlForArrayList("select * from Inventories order by LastAccessed desc") {
+            it.getInt(0)
+        }
+    }
+
+    fun getProject(projectId: Int, onResult: (Cursor) -> Unit) {
+        executeSql(
+            "select Name from Inventories where id=$projectId",
+            onResult
+        )
+    }
+
+    fun updateProject(projectId: Int, onResult: (Cursor) -> Unit) {
+        executeSql(
+            "update Inventories set LastAccessed=CURRENT_TIMESTAMP where id=$projectId",
+            onResult
+        )
+    }
+
+    fun getPartIds(projectId: Int): ArrayList<Int> {
+        return executeSqlForArrayList("select id from InventoriesParts where InventoryID=$projectId") {
+            it.getInt(0)
+        }
+    }
+
+    fun getPart(partId: Int, onResult: (Cursor) -> Unit) {
+        executeSql(
+            "select Parts.Name, Colors.Name from Codes left join Colors on Codes.ColorID = Colors.id left join Parts on Codes.id = Parts.id where Codes.id=${partId}",
+            onResult
+        )
     }
 }
