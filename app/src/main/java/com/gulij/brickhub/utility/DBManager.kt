@@ -33,14 +33,15 @@ object DBManager {
 
     fun getBrickByItem(item: Item, projectId: Int): Brick? {
         val cursor1 = db.rawQuery("select coalesce(max(id),0)+1 from InventoriesParts", null)
-        if(!cursor1.moveToFirst()){
+        if (!cursor1.moveToFirst()) {
             cursor1.close()
             return null
         }
         val itemId = cursor1.getInt(0)
         cursor1.close()
 
-        val cursor2 = db.rawQuery("select TypeID, id from Parts where Code=\'$item.code\'", null)
+        val cursor2 =
+            db.rawQuery("select TypeID, id from Parts where Code=\'${item.itemId}\'", null)
         val brick = if (cursor2.moveToFirst()) {
             Brick(
                 itemId,
@@ -56,6 +57,12 @@ object DBManager {
         }
 
         cursor2.close()
+
+        if(brick != null){
+            //val cursor3 = db.rawQuery("select TypeID, id from Parts where Code=\'${item.itemId}\'", null)
+
+        }
+
         return brick
     }
 }
