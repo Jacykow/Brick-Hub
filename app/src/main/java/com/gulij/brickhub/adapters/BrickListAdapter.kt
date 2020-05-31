@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.gulij.brickhub.R
 import com.gulij.brickhub.models.Brick
+import com.gulij.brickhub.utility.DBManager
 
 class BrickListAdapter(
     private val bricks: ArrayList<Brick>
@@ -22,7 +23,10 @@ class BrickListAdapter(
     }
 
     override fun onBindViewHolder(holder: BrickViewHolder, position: Int) {
-        holder.layout.findViewById<TextView>(R.id.descriptionText).text = bricks[position].id.toString()
+        val brick = bricks[position]
+        val nameAndColor = DBManager.getBrickNameAndColor(brick)
+        holder.layout.findViewById<TextView>(R.id.descriptionText).text = "${nameAndColor.first}\n${nameAndColor.second} [${brick.itemId}]"
+        holder.layout.findViewById<TextView>(R.id.brickAmountText).text = "${brick.quantityInStore} of ${brick.quantityInSet}"
     }
 
     override fun getItemCount() = bricks.size

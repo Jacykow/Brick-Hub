@@ -58,11 +58,22 @@ object DBManager {
 
         cursor2.close()
 
-        if(brick != null){
-            //val cursor3 = db.rawQuery("select TypeID, id from Parts where Code=\'${item.itemId}\'", null)
+        if (brick != null) {
+            //val cursor3 = db.rawQuery("insert into InventoriesParts (id,InventoryId,TypeID,ItemID,QuantityInSet,QuantityInStore,ColorID) values ()", null)
 
         }
 
         return brick
+    }
+
+    fun getBrickNameAndColor(brick: Brick): Pair<String, String> {
+        val cursor = db.rawQuery(
+            "select Parts.Name, Colors.Name from Codes left join Colors on Codes.ColorID = Colors.id left join Parts on Codes.id = Parts.id where Codes.id=${brick.itemId}",
+            null
+        )
+        cursor.moveToFirst()
+        val nameAndColor = Pair(cursor.getString(0), cursor.getString(1))
+        cursor.close()
+        return nameAndColor
     }
 }
