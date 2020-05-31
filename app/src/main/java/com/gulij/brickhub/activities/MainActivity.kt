@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         projectList.setHasFixedSize(false)
         projectList.layoutManager = LinearLayoutManager(this)
-        projectList.adapter = ProjectListAdapter {
+        projectList.adapter = ProjectListAdapter(DBManager.getProjectIds()) {
             StateManager.activeProject = it
             startActivity(Intent(this, ProjectActivity::class.java))
         }
@@ -44,8 +44,8 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onRestart() {
+        super.onRestart()
         (projectList.adapter as ProjectListAdapter).projects = DBManager.getProjectIds()
         projectList.adapter!!.notifyDataSetChanged()
     }

@@ -6,9 +6,5 @@
     android:orientation="vertical"
     tools:context=".activities.SettingsActivity">
 
-    <Button
-        android:id="@+id/wipeDataButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/wipe_data" />
+
 </LinearLayout>

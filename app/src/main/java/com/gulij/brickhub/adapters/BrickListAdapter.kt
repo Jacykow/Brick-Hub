@@ -10,7 +10,7 @@ import com.gulij.brickhub.R
 import com.gulij.brickhub.utility.DBManager
 
 class BrickListAdapter(
-    private val bricks: ArrayList<Int>
+    var bricks: ArrayList<Int>
 ) : RecyclerView.Adapter<BrickListAdapter.BrickViewHolder>() {
 
     override fun onCreateViewHolder(
@@ -24,24 +24,23 @@ class BrickListAdapter(
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: BrickViewHolder, position: Int) {
-        DBManager.getPart(bricks[position]) {
-            holder.layout.findViewById<TextView>(R.id.descriptionText).text =
-                "${it.getString(0)}\n${it.getString(1)} [${it.getInt(2)}]"
-            holder.layout.findViewById<TextView>(R.id.brickAmountText).text =
-                "${it.getString(3)} of ${it.getString(4)}"
-        }
+        val partValues = DBManager.getPart(bricks[position])!!
+        holder.layout.findViewById<TextView>(R.id.descriptionText).text =
+            "${partValues["name"]}\n${partValues["color"]} [${partValues["code"]}]"
+        val partAmount = DBManager.getPartAmount(bricks[position])!!.values.toList()
+        holder.layout.findViewById<TextView>(R.id.brickAmountText).text =
+            "${partAmount[0]} of ${partAmount[1]}"
+
         val partId = bricks[position]
         holder.layout.findViewById<TextView>(R.id.buttonMinus).setOnClickListener {
-            DBManager.changePartAmount(partId, -1) {
-                holder.layout.findViewById<TextView>(R.id.brickAmountText).text =
-                    "${it.getString(0)} of ${it.getString(1)}"
-            }
+            val partAmounts = DBManager.changePartAmount(partId, -1)!!.values.toList()
+            holder.layout.findViewById<TextView>(R.id.brickAmountText).text =
+                "${partAmounts[0]} of ${partAmounts[1]}"
         }
         holder.layout.findViewById<TextView>(R.id.buttonPlus).setOnClickListener {
-            DBManager.changePartAmount(partId, 1) {
-                holder.layout.findViewById<TextView>(R.id.brickAmountText).text =
-                    "${it.getString(0)} of ${it.getString(1)}"
-            }
+            val partAmounts = DBManager.changePartAmount(partId, 1)!!.values.toList()
+            holder.layout.findViewById<TextView>(R.id.brickAmountText).text =
+                "${partAmounts[0]} of ${partAmounts[1]}"
         }
     }
 

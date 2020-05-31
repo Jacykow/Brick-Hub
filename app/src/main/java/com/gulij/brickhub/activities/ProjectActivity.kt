@@ -17,7 +17,11 @@ class ProjectActivity : AppCompatActivity() {
 
         brickList.setHasFixedSize(false)
         brickList.layoutManager = LinearLayoutManager(this)
-        DBManager.updateProject(StateManager.activeProject!!) {}
+        DBManager.updateProject(StateManager.activeProject!!)
         brickList.adapter = BrickListAdapter(DBManager.getPartIds(StateManager.activeProject!!))
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 }

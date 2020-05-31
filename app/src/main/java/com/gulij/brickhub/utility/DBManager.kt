@@ -1,5 +1,6 @@
 package com.gulij.brickhub.utility
 
+import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
@@ -31,16 +32,34 @@ object DBManager {
         db = SQLiteDatabase.openDatabase(dbFile.path, null, 0)
     }
 
-    private fun executeSql(sql: String, onResult: (Cursor) -> Unit) {
-        val cursor = db.rawQuery(sql, null)
-        if (!sql.toLowerCase().startsWith("select") || cursor.moveToFirst()) {
-            onResult.invoke(cursor)
-        }
+    private fun executeSql(sql: String, selectionArgs: Array<String>? = null) {
+        val cursor = db.rawQuery(sql, selectionArgs)
         cursor.close()
     }
 
-    private fun <T> executeSqlForArrayList(sql: String, converter: (Cursor) -> T): ArrayList<T> {
-        val cursor = db.rawQuery(sql, null)
+    private fun executeSqlForResult(
+        sql: String,
+        selectionArgs: Array<String>? = null
+    ): HashMap<String, String?>? {
+        val cursor = db.rawQuery(sql, selectionArgs)
+        var result: HashMap<String, String?>? = HashMap()
+        if (cursor.moveToFirst()) {
+            for (x in 0 until cursor.columnCount) {
+                result!![cursor.getColumnName(x)] = cursor.getString(x)
+            }
+        } else {
+            result = null
+        }
+        cursor.close()
+        return result
+    }
+
+    private fun <T> executeSqlForArrayList(
+        sql: String,
+        selectionArgs: Array<String>? = null,
+        converter: (Cursor) -> T
+    ): ArrayList<T> {
+        val cursor = db.rawQuery(sql, selectionArgs)
         val list = ArrayList<T>()
         while (cursor.moveToNext()) {
             list.add(converter.invoke(cursor))
@@ -49,31 +68,35 @@ object DBManager {
         return list
     }
 
-    fun wipeData(onResult: () -> Unit) {
-        executeSql("delete from Inventories") {
-            executeSql("delete from InventoriesParts") {
-                onResult.invoke()
-            }
-        }
+    fun addProject(projectName: String): Int {
+        val result =
+            executeSqlForResult("select coalesce(max(id),0)+1,strftime(\"%s\",\"now\") from Inventories")!!.values.toList()
+        db.insert("Inventories", null, ContentValues().apply {
+            put("id", result[0])
+            put("Name", projectName)
+            put("Active", 1)
+            put("LastAccessed", result[1])
+        })
+        return result[0]!!.toInt()
     }
 
-    fun addProject(projectName: String, onResult: (Cursor) -> Unit) {
-        executeSql("executeSql(\"select coalesce(max(id),0)+1 from Inventories\")") { firstResult ->
-            executeSql(
-                "insert into Inventories select coalesce(max(id),0)+1,\'$projectName\',1,CURRENT_TIMESTAMP from Inventories"
-            )
-            {
-                onResult.invoke(firstResult)
-            }
-        }
-    }
-
-    fun addPartFromItem(item: Item, projectId: Int, onResult: () -> Unit) {
-        executeSql(
-            "insert into InventoriesParts select coalesce(max(InventoriesParts.id),0)+1,$projectId,Parts.TypeID,Parts.id,${item.qty},0,${item.color},0 from Parts left join InventoriesParts where Parts.Code=\'${item.itemId}\'"
-        ) {
-            onResult.invoke()
-        }
+    fun addPartFromItem(item: Item, projectId: Int) {
+        val result = executeSqlForResult(
+            "select Parts.TypeID,Parts.id from Parts where Code=?",
+            arrayOf(item.itemId.toString())
+        )?.values?.toList() ?: return
+        val id =
+            executeSqlForResult("select coalesce(max(InventoriesParts.id),0)+1 from InventoriesParts")!!.values.toList()[0]!!.toInt()
+        db.insert("InventoriesParts", null, ContentValues().apply {
+            put("id", id)
+            put("InventoryID", projectId)
+            put("TypeID", result[0])
+            put("ItemID", result[1])
+            put("QuantityInSet", item.qty)
+            put("QuantityInStore", 0)
+            put("ColorID", item.color)
+            put("Extra", 0)
+        })
     }
 
     fun getProjectIds(): ArrayList<Int> {
@@ -82,45 +105,51 @@ object DBManager {
         }
     }
 
-    fun getProject(projectId: Int, onResult: (Cursor) -> Unit) {
-        executeSql(
-            "select Name from Inventories where id=$projectId",
-            onResult
+    fun getProject(projectId: Int): HashMap<String, String?>? {
+        return executeSqlForResult(
+            "select Name from Inventories where id=?",
+            arrayOf(projectId.toString())
         )
     }
 
-    fun updateProject(projectId: Int, onResult: () -> Unit) {
+    fun updateProject(projectId: Int) {
         executeSql(
-            "update Inventories set LastAccessed=CURRENT_TIMESTAMP where id=$projectId"
-        ) {
-            onResult.invoke()
-        }
+            "update Inventories set LastAccessed=CURRENT_TIMESTAMP where id=?",
+            arrayOf(projectId.toString())
+        )
     }
 
     fun getPartIds(projectId: Int): ArrayList<Int> {
-        return executeSqlForArrayList("select id from InventoriesParts where InventoryID=$projectId") {
+        return executeSqlForArrayList(
+            "select id from InventoriesParts where InventoryID=?",
+            arrayOf(projectId.toString())
+        ) {
             it.getInt(0)
         }
     }
 
-    fun getPart(partId: Int, onResult: (Cursor) -> Unit) {
-        executeSql(
-            "select Parts.Name, Colors.Name from Codes left join Colors on Codes.ColorID = Colors.id left join Parts on Codes.id = Parts.id where Codes.id=${partId}",
-            onResult
+    fun getPart(partId: Int): HashMap<String, String?>? {
+        return executeSqlForResult(
+            "select Parts.Name as name, Colors.Name as color, Parts.Code as code from Codes left join Colors on Codes.ColorID = Colors.id left join Parts on Codes.id = Parts.id where Codes.id=?",
+            arrayOf(partId.toString())
         )
     }
 
-    fun changePartAmount(partId: Int, amountDelta: Int, onResult: (Cursor) -> Unit) {
-        val deltaString = if (amountDelta < 0) {
-            "-${(-amountDelta)}"
-        } else {
-            "+$amountDelta"
-        }
-        executeSql("update InventoriesParts set QuantityInStore=QuantityInStore$deltaString where id=$partId") {
-            executeSql(
-                "select QuantityInStore,QuantityInSet from InventoriesParts where id=$partId",
-                onResult
-            )
-        }
+    fun getPartAmount(partId: Int): HashMap<String, String?>? {
+        return executeSqlForResult(
+            "select QuantityInStore,QuantityInSet from InventoriesParts where id=?",
+            arrayOf(partId.toString())
+        )
+    }
+
+    fun changePartAmount(partId: Int, amountDelta: Int): HashMap<String, String?>? {
+        val quantity = getPartAmount(partId)!!.values.toList()[0]!!.toInt()
+        val maxQuantity = getPartAmount(partId)!!.values.toList()[1]!!.toInt()
+        db.update(
+            "InventoriesParts", ContentValues().apply {
+                put("QuantityInStore", (quantity + amountDelta).coerceIn(0, maxQuantity))
+            }, "id=?", arrayOf(partId.toString())
+        )
+        return getPartAmount(partId)
     }
 }

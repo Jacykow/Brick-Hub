@@ -8,11 +8,10 @@ import com.gulij.brickhub.R
 import com.gulij.brickhub.utility.DBManager
 
 class ProjectListAdapter(
+    var projects: ArrayList<Int>,
     private val selectedProjectListener: (Int) -> Unit
 ) :
     RecyclerView.Adapter<ProjectListAdapter.ProjectViewHolder>() {
-
-    var projects: ArrayList<Int> = arrayListOf()
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -24,9 +23,7 @@ class ProjectListAdapter(
     }
 
     override fun onBindViewHolder(holder: ProjectViewHolder, position: Int) {
-        DBManager.getProject(projects[position]) {
-            holder.textView.text = it.getString(0)
-        }
+        holder.textView.text = DBManager.getProject(projects[position])!!.values.first()
         holder.textView.setOnClickListener {
             selectedProjectListener.invoke(projects[holder.adapterPosition])
         }

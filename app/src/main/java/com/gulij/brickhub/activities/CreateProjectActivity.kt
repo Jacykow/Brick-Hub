@@ -25,19 +25,18 @@ class CreateProjectActivity : AppCompatActivity() {
                 "http://fcds.cs.put.poznan.pl/MyWeb/BL/" + setNumberEditText.text.toString() + ".xml",
                 (Inventory)::fromXMLString
             ) { inventory ->
+                confirmButton.isEnabled = true
                 if (inventory == null) {
                     Toast.makeText(this, "Invalid Set Number!", Toast.LENGTH_SHORT).show()
-                    confirmButton.isEnabled = true
                 } else {
-                    DBManager.addProject(projectNameEditText.text.toString()) {
-                        StateManager.activeProject = it.getInt(0)
+                    StateManager.activeProject =
+                        DBManager.addProject(projectNameEditText.text.toString())
 
-                        for (item in inventory.filter { item -> item.alternate == "N" }) {
-                            DBManager.addPartFromItem(item, StateManager.activeProject!!) {}
-                        }
-
-                        startActivity(Intent(this, ProjectActivity::class.java))
+                    for (item in inventory.filter { item -> item.alternate == "N" }) {
+                        DBManager.addPartFromItem(item, StateManager.activeProject!!)
                     }
+
+                    startActivity(Intent(this, ProjectActivity::class.java))
                 }
             }
         }
