@@ -5,13 +5,11 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import com.gulij.brickhub.models.Item
 import com.squareup.picasso.Picasso
 import java.io.File
-import java.nio.ByteBuffer
 
 
 object DBManager {
@@ -37,11 +35,6 @@ object DBManager {
         }
 
         db = SQLiteDatabase.openDatabase(dbFile.path, null, 0)
-    }
-
-    private fun executeSql(sql: String, selectionArgs: Array<String>? = null) {
-        val cursor = db.rawQuery(sql, selectionArgs)
-        cursor.close()
     }
 
     private fun executeSqlForResult(
@@ -120,10 +113,11 @@ object DBManager {
     }
 
     fun updateProject(projectId: Int) {
-        executeSql(
-            "update Inventories set LastAccessed=CURRENT_TIMESTAMP where id=?",
-            arrayOf(projectId.toString())
-        )
+        val result =
+            executeSqlForResult("select strftime(\"%s\",\"now\") from Inventories")!!.values.toList()
+        db.update("Inventories", ContentValues().apply {
+            put("LastAccessed", result[0])
+        }, "id=?", arrayOf(projectId.toString()))
     }
 
     fun getPartIds(projectId: Int): ArrayList<Int> {
@@ -137,7 +131,7 @@ object DBManager {
 
     fun getPart(partId: Int): HashMap<String, String?>? {
         return executeSqlForResult(
-            "select Parts.Name as name, Colors.Name as color, Parts.Code as code from Codes left join Colors on Codes.ColorID = Colors.id left join Parts on Codes.id = Parts.id where Codes.id=?",
+            "select Parts.Name as name, Colors.Name as color, Parts.Code as code from InventoriesParts left join Codes on InventoriesParts.ItemID=Codes.id left join Colors on InventoriesParts.ColorID = Colors.Code left join Parts on Codes.id = Parts.id where InventoriesParts.id=?",
             arrayOf(partId.toString())
         )
     }
@@ -162,15 +156,44 @@ object DBManager {
     }
 
     fun getImage(imageView: ImageView, partId: Int) {
-        val cursor =
-            db.rawQuery("select Image from Codes where Codes.id=?", arrayOf(partId.toString()))
-        val blob = cursor.getBlob(0)
-        cursor.close()
+        val result = executeSqlForResult(
+            "select Codes.Code as code, Parts.Code as code2, InventoriesParts.ColorID as colorId from InventoriesParts left join Parts on InventoriesParts.ItemID = Parts.id left join Codes on InventoriesParts.ItemID = Codes.ItemID and InventoriesParts.ColorID = Codes.ColorID where InventoriesParts.id=?",
+            arrayOf(partId.toString())
+        )!!
+        val code = result["code"] ?: "-1"
+        val code2 = result["code2"] ?: "-1"
+        val colorId = result["colorId"] ?: "-1"
+        getImage(
+            imageView,
+            arrayListOf(
+                "https://www.lego.com/service/bricks/5/2/$code",
+                "http://img.bricklink.com/P/$colorId/$code2.gif",
+                "https://www.bricklink.com/PL/$code2.jpg",
+                "https://www.lego.com/service/bricks/5/2/300126"
+            )
+        )
+    }
 
-        object : com.squareup.picasso.Target {
-            override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {}
-            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
-            override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
-        }
+    private fun getImage(imageView: ImageView, urls: ArrayList<String>) {
+        val url = urls[0]
+
+        Picasso.get().load(url).into(object : com.squareup.picasso.Target {
+            override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                imageView.setImageBitmap(bitmap)
+            }
+
+            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
+                imageView.setImageDrawable(placeHolderDrawable)
+            }
+
+            override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {
+                urls.removeAt(0)
+                if (urls.size == 0) {
+                    imageView.setImageDrawable(errorDrawable)
+                } else {
+                    getImage(imageView, urls)
+                }
+            }
+        })
     }
 }
